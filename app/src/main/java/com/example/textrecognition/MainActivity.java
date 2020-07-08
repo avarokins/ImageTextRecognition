@@ -3,19 +3,49 @@ package com.example.textrecognition;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
+import android.Manifest;
+import android.content.ContentValues;
 import android.content.DialogInterface;
+import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
+
+    EditText mResultET;
+    ImageView mPreviewIV;
+
+    private static final int CAMERA_REQUEST = 200;
+    private static final int STORAGE_REQUEST = 400;
+    private static final int IMAGE_PICK_GALLERY = 1000;
+    private static final int IMAGE_PICK_CAMERA = 1001;
+
+    String cameraPermissions[];
+    String storagePermissions[];
+
+    Uri image_uri;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        mResultET = findViewById(R.id.resultET);
+        mPreviewIV = findViewById(R.id.previewIV);
+
+        cameraPermissions = new String[]{Manifest.permission.CAMERA,
+          Manifest.permission.WRITE_EXTERNAL_STORAGE};
+        storagePermissions = new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE};
+
     }
 
     // Actionbar Menu
@@ -49,14 +79,52 @@ public class MainActivity extends AppCompatActivity {
                     if ( !checkCameraPermission()) {
                         requestCameraPermission();
                     } else {
-                        takePicture();
+                        pickCamera();
                     }
-
                 } else if (which == 1) {
                     // Gallery option
+                    if ( !checkStoragePermission()) {
+                        requestStoragePermission();
+                    } else {
+                        pickGallery();
+                    }
                 }
            }
        });
        dialog.create().show();
     }
+
+
+    private boolean checkCameraPermission() {
+        boolean camera = ContextCompat.checkSelfPermission(this,
+          Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED;
+
+        boolean save = ContextCompat.checkSelfPermission(this,
+          Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+
+        return camera && save;
+    }
+
+    private void requestCameraPermission() {
+        ActivityCompat.requestPermissions(this, cameraPermissions,CAMERA_REQUEST);
+    }
+
+    private boolean checkStoragePermission() {
+        boolean save = ContextCompat.checkSelfPermission(this,
+          Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+        return save;
+    }
+
+    private void requestStoragePermission() {
+        ActivityCompat.requestPermissions(this, storagePermissions, STORAGE_REQUEST);
+    }
+
+
+    private void pickCamera() {
+        ContentValues values = new ContentValues();
+        values.put(MediaStore.Images.Media.TITLE,"NewPicture");
+        values.put(MediaStore.Images.Media.DESCRIPTION,"Image to text");
+    }
+
+
 }
