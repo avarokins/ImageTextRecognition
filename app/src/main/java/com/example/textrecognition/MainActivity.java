@@ -9,6 +9,7 @@ import androidx.core.content.ContextCompat;
 import android.Manifest;
 import android.content.ContentValues;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
@@ -110,21 +111,59 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private boolean checkStoragePermission() {
-        boolean save = ContextCompat.checkSelfPermission(this,
+        return ContextCompat.checkSelfPermission(this,
           Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
-        return save;
     }
 
     private void requestStoragePermission() {
         ActivityCompat.requestPermissions(this, storagePermissions, STORAGE_REQUEST);
     }
 
-
     private void pickCamera() {
         ContentValues values = new ContentValues();
         values.put(MediaStore.Images.Media.TITLE,"NewPicture");
         values.put(MediaStore.Images.Media.DESCRIPTION,"Image to text");
+        image_uri = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+          values);
+
+        Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, image_uri);
+        startActivityForResult(cameraIntent, IMAGE_PICK_CAMERA);
     }
 
+    private void pickGallery() {
+        Intent intent = new Intent(Intent.ACTION_PICK);
+        intent.setType("image/*");
+        startActivityForResult(intent, IMAGE_PICK_GALLERY);
 
+    }
+
+    // Handle permission result
+    // Check grant request
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case CAMERA_REQUEST:
+                if ( grantResults.length > 0){
+                    boolean cameraAccept = grantResults[0] == PackageManager.PERMISSION_GRANTED;
+                    boolean writeStorageAccept = grantResults[0] == PackageManager.PERMISSION_GRANTED;
+                    if ( cameraAccept && writeStorageAccept ) {
+                        pickCamera();
+                    } else {
+                        Toast.makeText(this,  "permission denied", Toast.LENGTH_SHORT).show();
+                    }
+                }
+                break;
+
+            case STORAGE_REQUEST:
+                boolean writeStorageAccept = grantResults[0] == PackageManager.PERMISSION_GRANTED;
+                if ( writeStorageAccept ) {
+                    pickGallery();
+                } else {
+                    Toast.makeText(this,  "permission denied", Toast.LENGTH_SHORT).show();
+                }
+                break;
+
+        }
+    }
 }
