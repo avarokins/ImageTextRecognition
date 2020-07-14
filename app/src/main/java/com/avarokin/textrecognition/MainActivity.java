@@ -1,6 +1,8 @@
-package com.example.textrecognition;
+package com.avarokin.textrecognition;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -11,14 +13,23 @@ import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.SparseArray;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
+
+import com.google.android.gms.vision.Frame;
+import com.google.android.gms.vision.text.TextBlock;
+import com.google.android.gms.vision.text.TextRecognizer;
+import com.theartofdev.edmodo.cropper.CropImage;
+import com.theartofdev.edmodo.cropper.CropImageView;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -39,6 +50,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        ActionBar actionBar = getSupportActionBar();
+        actionBar.setSubtitle("Click the image icon");
 
         mResultET = findViewById(R.id.resultET);
         mPreviewIV = findViewById(R.id.previewIV);
@@ -63,8 +76,6 @@ public class MainActivity extends AppCompatActivity {
         int id = item.getItemId();
         if ( id == R.id.addImage) {
             showImageImportDialog();
-        } else if ( id == R.id.settings) {
-            Toast.makeText(this,"Settings",Toast.LENGTH_SHORT).show();
         }
         return super.onOptionsItemSelected(item);
     }
@@ -141,7 +152,8 @@ public class MainActivity extends AppCompatActivity {
     // Handle permission result
     // Check grant request
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
         switch (requestCode) {
             case CAMERA_REQUEST:
                 if ( grantResults.length > 0){
@@ -166,4 +178,59 @@ public class MainActivity extends AppCompatActivity {
 
         }
     }
-}
+
+    // Handle image result. Crop it
+    @Override
+    protected void onActivityResult (int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == RESULT_OK) {
+            if (requestCode == IMAGE_PICK_GALLERY) {
+                CropImage.activity(data.getData()).setGuidelines(CropImageView.Guidelines.ON)
+                  .start(this);
+            }
+            if (requestCode == IMAGE_PICK_CAMERA) {
+                CropImage.activity(image_uri).setGuidelines(CropImageView.Guidelines.ON)
+                  .start(this);
+            }
+        }
+
+        // Once cropped
+        if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE) {
+            CropImage.ActivityResult result = CropImage.getActivityResult(data);
+            if (resultCode == RESULT_OK) {
+                Uri resulUri = result.getUri();
+                mPreviewIV.setImageURI(resulUri);
+
+                // Drawable bitmap for text recognition
+                BitmapDrawable bitmapDrawable = (BitmapDrawable) mPreviewIV.getDrawable();
+                Bitmap bitmap = bitmapDrawable.getBitmap();
+
+                TextRecognizer recognizer = new TextRecognizer.Builder(getApplicationContext()).build();
+
+                if (recognizer.isOperational()) {
+                    Frame frame = new Frame.Builder().setBitmap(bitmap).build();
+                    SparseArray<TextBlock> items = recognizer.detect(frame);
+                    StringBuilder sb = new StringBuilder();
+
+                    // Get text from stream
+                    for (int i = 0; i < items.size(); i++) {
+                        TextBlock item = items.valueAt(i);
+                        sb.append(item.getValue());
+                        sb.append('\n');
+                    }
+
+                    // Set result
+                    mResultET.setText(sb.toString());
+
+                } else {
+                    Toast.makeText(this, "Error", Toast.LENGTH_SHORT).show();
+                }
+            } else if (resultCode == CropImage.CROP_IMAGE_ACTIVITY_RESULT_ERROR_CODE) {
+                Exception e = result.getError();
+                Toast.makeText(this, "" + e, Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+
+} // class MainActivity

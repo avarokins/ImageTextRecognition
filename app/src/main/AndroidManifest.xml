@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.textrecognition">
+    package="com.avarokin.textrecognition">
 
-    // Take camera and storage permissions
+
     <uses-permission android:name="android.permission.CAMERA"/>
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
@@ -23,8 +23,9 @@
             </intent-filter>
         </activity>
 
-        // Activity for image cropping
-        <activity android:name="com.theartofdev.edmodo.cropper.CropImageActivity"
+
+        <activity
+            android:name="com.theartofdev.edmodo.cropper.CropImageActivity"
             android:theme="@style/AppTheme"/>
     </application>
 

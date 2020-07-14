@@ -33,18 +33,15 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Output"
+                        android:text="Preview"
                         android:textColor="@color/colorPrimary"
                         android:textSize="25sp"/>
-                    <EditText
-                        android:id="@+id/resultET"
-                        android:layout_width="match_parent"
+                    <ImageView
+                        android:id="@+id/previewIV"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:hint="click + to add image"
-                        android:autoLink="all"
-                        android:padding="5dp"
-                        android:textColor="#000"
-                        android:background="@null"/>
+                        android:maxHeight="300dp"/>
+
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
             <androidx.cardview.widget.CardView
@@ -64,15 +61,18 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Preview"
+                        android:text="Output"
                         android:textColor="@color/colorPrimary"
                         android:textSize="25sp"/>
-                    <ImageView
-                        android:id="@+id/previewIV"
-                        android:layout_width="wrap_content"
+                    <EditText
+                        android:id="@+id/resultET"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:maxHeight="300dp"/>
-
+                        android:hint=""
+                        android:autoLink="all"
+                        android:padding="5dp"
+                        android:textColor="#000"
+                        android:background="@null"/>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
